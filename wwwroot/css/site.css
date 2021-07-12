@@ -16,6 +16,8 @@ main {
     flex: 1 0;
     height: 100vh;
     overflow-y: auto;
+    margin-bottom: 224px;
+    padding-bottom: 1em;
 }
 .main-nav {
     flex: 0 1;

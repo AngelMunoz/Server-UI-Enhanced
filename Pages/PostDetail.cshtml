@@ -1,18 +1,18 @@
 ﻿@page "{id}"
 @model PostDetailModel
-@{ 
+@{
     ViewData["Title"] = $"{Model.Post.Title}";
 }
 
-@* In this case  we will render the important bits directly from the server 
-   (the post title and content) everything else will be delayed to the UI and knockout
-   this can be done using knockout components (check wwwroot/site.js) *@
+@* In this case we will render the important bits directly from the server
+    (the post title and content) everything else will be delayed to the UI and knockout
+    this can be done using knockout components (check wwwroot/site.js) *@
 <article id="post-details" class="container content card">
     <section class="card-content">
         <header>
             <h1 class="title is-capitalized">@Model?.Post?.Title</h1>
-            @* we use the data-* attributes to give information to knockout what to do 
-               after the javascript code kicks in *@
+            @* we use the data-* attributes to give information to knockout what to do
+                after the javascript code kicks in *@
             <section data-user-id="@Model?.Post?.UserId" class="author-section">
                 <!-- ko if: (status() === 'Loading') -->
                 <progress class="progress is-small is-info" max="100"></progress>
@@ -38,38 +38,35 @@
 
 
 @section Scripts {
-    <script>
-        (function (userSection, commentsSection) {
-            function UserVM() {
-                var self = this;
-                // only observe what will change
-                self.status = ko.observable("Loading")
-                // you can use ajax if necessary
-                fetch("https://jsonplaceholder.typicode.com/users/" + userSection.dataset.userId)
-                    .then(function (response) {
-                        if (!response.ok) throw new Error(response.statusText)
-                        return response.json()
-                    })
-                    .then(function (user) {
-                        // if the object won't be manipulated don't use observables
-                        // just use the object
-                        self.user = user;
-                        self.status("Initialized")
-                    })
-                    .catch(function (error) { console.warn(error.message) });
+<script>
+    function UserVM() {
+        var self = this;
+        // only observe what will change
+        self.status = ko.observable("Loading")
+        // you can use ajax/jquery if necessary
+        fetch("https://jsonplaceholder.typicode.com/users/" + document.querySelector(".author-section").dataset.userId)
+            .then(function(response) {
+                if (!response.ok) throw new Error(response.statusText)
+                return response.json()
+            })
+            .then(function(user) {
+                // if the object won't be manipulated don't use observables
+                // just use the object
+                self.user = user;
+                self.status("Initialized")
+            })
+            .catch(function(error) { console.warn(error.message) });
 
-            }
-            // call to enable a particular view model and particular section
-            ko.applyBindings(new UserVM(), userSection);
-            // call to enable components
-            ko.applyBindings(undefined, commentsSection);
-            // you can use jquery if necessary
-        })(document.querySelector(".author-section"), document.querySelector("#comments-section"))
-    </script>
+    }
+    // call to enable a particular view model and particular section
+    ko.applyBindings(new UserVM(), document.querySelector(".author-section"));
+    // call to enable components
+    ko.applyBindings(undefined, document.querySelector("#comments-section"));
+</script>
 }
 
 @section Styles {
-    <style>
+<style>
 
-    </style>
+</style>
 }

@@ -2,18 +2,11 @@
     var self = this;
     self.isOpen = ko.observable(false);
 
-    self.toggleMenu = function () {
-        self.isOpen(!self.isOpen())
-    }
+    self.toggleMenu = function() {
+        self.isOpen(!self.isOpen());
+    };
 }
-
-
-var navbar = document.querySelector("#main-nav")
-
-ko.applyBindings(NavbarVM, navbar);
-
-
-
+ko.applyBindings(new NavbarVM(), document.querySelector("#main-nav"));
 
 
 var myCommentTemplate = `
@@ -35,19 +28,19 @@ function CommentVM(params) {
 
     // I'm using fetch but you should be able to use ajax instead
     fetch("https://jsonplaceholder.typicode.com/comments?postId=" + self.postId)
-        .then(function (response) {
-            if (!response.ok) throw new Error(response.statusText)
-            return response.json()
+        .then(function(response) {
+            if (!response.ok) throw new Error(response.statusText);
+            return response.json();
         })
-        .then(function (comments) {
-            comments.forEach(function (comment) {
+        .then(function(comments) {
+            comments.forEach(function(comment) {
                 // if you won't make changes to the elements
                 // don't use observables, just push the items without view models or observables
                 self.commentList.push(comment);
             });
         })
-        .catch(function (error) {
-            console.warn(error.message)
+        .catch(function(error) {
+            console.warn(error.message);
         });
 }
 
