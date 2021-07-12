@@ -1,0 +1,110 @@
+﻿@page
+@model PostsModel
+@using Enhanced.Models
+
+@{
+    ViewData["Title"] = "Posts";
+}
+
+<article id="post-page" class="container">
+    <nav class="pagination is-rounded" role="navigation" aria-label="pagination">
+        <a class="pagination-previous" asp-page="./Posts" asp-route-pageNum="@(Model.PageNum - 1)">Previous</a>
+        <a class="pagination-next" asp-route-pageNum="@(Model.PageNum + 1)">Next page</a>
+        <ul class="pagination-list">
+            <li><a class="pagination-link">@Model.PageNum</a></li>
+        </ul>
+    </nav>
+    @* Whenever you can, render from the server rather from the client
+       to make it more efficient to the client devices
+       if you are already rendering the page on the server the more work
+       that can be done by the server the better *@
+    <section>
+        @foreach (var post in Model.Posts)
+        {
+            @* defined in the scripts below but the information has been rendered from the server
+               the rest of the "reactive" parts of the UI will be enabled with kockout after the page
+               is rendered by the browser *@
+            <my-post-item class="box" params='title: "@Html.Encode(@post.Title)", content: "@Html.Encode(@post.Body)", postId: @post.Id'></my-post-item>
+        }
+    </section>
+</article>
+
+
+@section Scripts {
+
+    <script>
+        var myPostTemplate = `
+            <article class="my-post">
+                <header class="my-post-header">
+                    <h4 data-bind="text: title"></h4>
+                </header>
+                <aside>
+                    <a data-bind="attr: { href: href }" class="button is-ghost">Visit Post Details</a>
+                    <button data-bind="click: toggleOpen" class="button is-ghost">View Details</button>
+                </aside>
+                <section class="my-post-details" data-bind="visible: isOpen">
+                    <p data-bind="html: content"></p>
+                    <button data-bind="click: toggleComments" class="button is-text"><span data-bind="text: displayCommentText"></span> Comments</button>
+                    <!-- ko if: showComments -->
+                    <!-- defined at wwwroot/site.js -->
+                    <my-post-comments params="postId: postId"></my-post-comments>
+                    <!-- /ko -->
+                </section>
+            </article>`;
+
+        function PostVM(params) {
+            var self = this;
+            // limit the amount of observable properties
+            self.postId = params.postId;
+            self.title = params.title;
+            self.content = params.content;
+            self.href = "/PostDetail/" + params.postId
+            // only assign observables to those properties that will change over time
+            self.isOpen = ko.observable(false);
+            self.showComments = ko.observable(false);
+
+            self.toggleOpen = function () {
+                self.isOpen(!self.isOpen());
+            }
+
+            self.toggleComments = function () {
+                // change display after the element is on the DOM
+                self.showComments(!self.showComments());
+            }
+
+            // try to limit the amount of computed functions there are they are expensive
+            self.displayCommentText = ko.pureComputed(function () {
+                return this.showComments()
+                    ? 'Hide'
+                    : 'Show';
+            }, this);
+
+        }
+        // use components so you can render most of the skeleton from
+        // the backend, this also will allow you to migrate to something modern
+        // like https://lit.dev which can be rendered from the server
+        ko.components.register('my-post-item', {
+            template: myPostTemplate,
+            viewModel: PostVM
+        });
+        // call this to enable components
+        ko.applyBindings(undefined, document.querySelector("#post-page"));
+    </script>
+}
+
+@section Styles {
+    <style>
+        .my-post {
+            display: flex;
+            flex-direction: column;
+            align-content: center;
+            align-items: center;
+        }
+        .my-post-header {
+            display: flex;
+            justify-content: space-between;
+        }
+        .my-post-details p { padding: 0.5em }
+        .my-post-details my-post-comments { margin: 0.5em; }
+    </style>
+}
